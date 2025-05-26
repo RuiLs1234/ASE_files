@@ -1,9 +1,3 @@
-from flask import Flask, jsonify, render_template_string
-import sqlite3
-
-app = Flask(__name__)
-
-HTML_PAGE = """
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -79,10 +73,10 @@ HTML_PAGE = """
     <script>
         async function loadData() {
             try {
-                const response = await fetch('/data');
+                const response = await fetch('http://localhost:5000/data');
                 const data = await response.json();
                 const tableBody = document.querySelector('#dataTable tbody');
-                tableBody.innerHTML = '';
+                tableBody.innerHTML = ''; // limpar antes de preencher
 
                 data.forEach(row => {
                     const tr = document.createElement('tr');
@@ -98,28 +92,7 @@ HTML_PAGE = """
             }
         }
 
-        window.onload = () => {
-            loadData();
-            setInterval(loadData, 5000); // Atualizar a cada 5 segundos
-        };
+        window.onload = loadData;
     </script>
 </body>
 </html>
-"""
-
-@app.route('/')
-def index():
-    return render_template_string(HTML_PAGE)
-
-@app.route('/data')
-def get_data():
-    conn = sqlite3.connect('mock_database.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM temperatureinfo")
-    rows = c.fetchall()
-    conn.close()
-    data = [{"ID": row[0], "Temp": row[1], "Time": row[2]} for row in rows]
-    return jsonify(data)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
